@@ -8,73 +8,60 @@
 import UIKit
 
 class ViewController: UIViewController {
-
-    @IBOutlet weak var historyTextView: UITextView!
     
-    @IBOutlet weak var clickButtonMinus: UIButton!
+    @IBOutlet weak var rememberSwitch: UISwitch!
+    @IBOutlet weak var loginButton: UIButton!
+    @IBOutlet weak var usernameField: UITextField!
+    @IBOutlet weak var userPasswordField: UITextField!
     
-    @IBOutlet weak var clickButtonPlus: UIButton!
+    var savedUsername: String = ""
+    var savedPassword: String = ""
+    var rememberMe: Bool = false
     
-    @IBOutlet weak var clickButtonClear: UIButton!
-    
-    @IBOutlet weak var counter: UILabel!
-    var counterInt: Int = 0
-    
-    let formatter: DateFormatter = {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "yyyy-MM-dd HH:mm:ss"
-        formatter.locale = Locale(identifier: "ru_RU")
-        return formatter
-    }()
+    // MARK: - viewDidLoad
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        counter.text = "0"
-        historyTextView.text = "История изменений:\n"
-        historyTextView.isEditable = false
-        historyTextView.isScrollEnabled = true
+        
+        guard userPasswordField != nil else {return}
+        guard usernameField != nil else {return}
+        
+        userPasswordField.isSecureTextEntry = true
+        
+        savedUsername = UserDefaults.standard.string(forKey: "savedUsername") ?? ""
+        rememberMe = UserDefaults.standard.bool(forKey: "rememberUser")
+        savedPassword = UserDefaults.standard.string(forKey: "savedPassword") ?? ""
+        
+        if rememberMe {
+            usernameField.text = savedUsername
+            rememberSwitch.isOn = true
+        }
     }
     
-    @IBAction func changeClickButtonMinus(_ sender: Any) {
-        let dateString = formatter.string(from: Date())
+    // MARK: - IBAction
+    
+    @IBAction func clickedButtonLogIn(_ sender: Any) {
+        let username = usernameField.text ?? ""
+        let password = userPasswordField.text ?? ""
         
-        if counterInt > 0 {
-            counterInt -= 1
-            counter.text = String(counterInt)
-            //historyTextView.text += ("\(dateString): значение изменено на -1\n")
+        if username.isEmpty || password.isEmpty {
+            return
+        }
+        
+        if rememberSwitch.isOn {
+            UserDefaults.standard.set(username, forKey: "savedUsername")
+            UserDefaults.standard.set(true, forKey: "rememberUser")
         } else {
-            historyTextView.text += ("\(dateString): попытка уменьшить значение счётчика ниже 0\n")
+            UserDefaults.standard.removeObject(forKey: "savedUsername")
+            UserDefaults.standard.set(false, forKey: "rememberUser")
         }
-        let stringOfButtonMinusInHistory = true
         
-        if stringOfButtonMinusInHistory == true {
-            historyTextView.text += ("\(dateString): значение изменено на -1\n")
-        }
-    }
-
-    @IBAction func changeClickButtonPlus(_ sender: Any) {
-        let dateString = formatter.string(from: Date())
-        
-        counterInt += 1
-        counter.text = String(counterInt)
-        //historyTextView.text += ("\(dateString): значение изменено на +1\n")
-        let stringOfButtonPlusInHistory = true
-        
-        if stringOfButtonPlusInHistory == true {
-            historyTextView.text += ("\(dateString): значение изменено на +1\n")
+        // Переход на экран счётчика (с полным открытием)
+        let storyboard = UIStoryboard(name: "Main", bundle: nil)
+        if let destinationVC = storyboard.instantiateViewController(withIdentifier: "SecondViewController") as? SecondViewController {
+            destinationVC.modalPresentationStyle = .fullScreen  // Полноэкранный режим
+            present(destinationVC, animated: true, completion: nil)
         }
     }
     
-    @IBAction func changeClickButtonClear(_ sender: Any) {
-        let dateString = formatter.string(from: Date())
-        
-        counterInt = 0
-        counter.text = String(counterInt)
-        //historyTextView.text += ("\(dateString): значение сброшено\n")
-        let stringOfButtonClearInHistory = true
-        
-        if stringOfButtonClearInHistory == true {
-            historyTextView.text += ("\(dateString): значение сброшено\n")
-        }
-    }
 }
